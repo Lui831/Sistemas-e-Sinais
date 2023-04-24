@@ -1,0 +1,207 @@
+%%%% CÓDIGO PARA VERIFICAÇÃO DAS PROPRIEDADES INERENTES À TRANSFORMADA DE FOURIER
+
+
+%% Seção 0 - Limpeza do sistema
+
+disp("Executando a seção 0...");
+
+clear;
+close;
+clc;
+
+
+%% Seção 1 - Definição de variáveis
+
+disp("Executando a seção 1...");
+
+T0 = 8; % Período fundamental
+w0 = (2*pi)/T0;  % Frequência angular fundamental
+N = 50;  % Número de componentes da série de Fourier
+td = linspace(-4,-4 + T0,300);  % Definição do tempo discreto no intervalo estudado
+gd = [];  % Definição do sinal discreto no intervalo estudado
+gd_fou = zeros(1,300); % Cria um array para armazenar a síntese de Fourier discreta
+gddis = []; % Definição do sinal discreto deslocado em 1 s no intervalo estudado
+gddis_fou= zeros(1,300); % Cria um array para armazenar a síntese de Fourier discreta do sinal deslocado
+gdder_fou = zeros(1,300); % Cria um array para armezenar a síntese de Fourier discreta do sinal derivado
+i = 0;  % Definição de um incrementador computacional universal
+Dn = [];  % Definição de um array para armazenas as amplitudes resultantes na síntese de Fourier
+Dndis = []; % Dn para o sinal deslocado
+Dnder = []; % Dn para o sinal derivado
+Dnder2 = []; % Dn para o sinal derivado^2
+gdder2_fou = zeros(1,300); % Cria um array para armazenar a síntese de Fourier discreta do sinal derivado^2
+Dnint = []; % Dn para o sinal integrado
+gdint_fou = zeros(1,300); % Cria um array para armazenar a síntese de Fourier discreta do sinal integrado
+
+
+
+
+%% Seção 2 - Estruturação e representação do sinal estudado
+
+disp("Executando a seção 2...");
+
+% Preenche o array gd que representa a função discreta
+
+for i = 1: length(td)
+
+ if (td(i) <= -2) gd(i) = td(i) + 4; % Se td está no intervalo da primeira função, o valor atribuído é o da primeira
+
+ elseif (td(i) <= 2) gd(i) = -td(i);
+
+ else gd(i) = td(i) - 4; endif;
+
+end
+
+figure(1) % Cria uma nova figura
+plot(td,gd); % Plota o gráfico do sinal pelo tempo discretizados em um período
+hold on; % Mantém plots em uma mesma figura
+
+
+%% Seção 3 - Obtenção do sinal original deslocado em 1 s
+
+disp("Executando a seção 3...");
+
+% Preenche o array gddis que representa a função discreta deslocada de 1 s
+
+for i = 1: length(td)
+
+ if (td(i) <= -1) gddis(i) = td(i) + 3; % Se td está no intervalo da primeira função, o valor atribuído é o da primeira
+
+ elseif (td(i) <= 3) gddis(i) = -td(i) + 1;
+
+ else gddis(i) = td(i) - 5; endif;
+
+end
+
+plot(td,gddis, color = 'r'); % Plota o gráfico do sinal deslocado em função do tempo discreto
+
+
+%% Seção 4 - Síntese, análise de Fourier do sinal original e plot do sinal
+
+disp("Executando a seção 4...");
+
+% Preenche o array Dn com as amplitudes provenientes da síntese de Fourier (faz uso de integral trapezoidal)
+
+for i = -N: N
+
+ Dn(i+N+1) = (1/T0)*trapz(td,gd.*exp(-j*i*w0*td));
+
+end
+
+% Preenche o array gd_fou com os valores de y obtidos a partir da síntese de Fourier
+
+for i = -N:N
+
+ gd_fou = gd_fou + Dn(i+N+1)*exp(j*i*w0*td);
+
+end
+
+figure(2); % Cria uma nova figura para plot
+hold on;
+plot(td,gd_fou, color = 'g');
+
+
+%% Seção 5 - Síntese, análise de Fourier do sinal deslocado e plot do sinal
+
+disp("Executando a seção 5...");
+
+% Utiliza a propriedade da deslocação no tempo para cálculo do Dn do novo sinal:
+
+for i = -N:N
+
+ Dndis(i+N+1) = Dn(i+N+1)*exp(-j*i*w0*1);
+
+end
+
+% Preenche o array gd_fou com os valores de y obtidos a partir da síntese de Fourier
+
+for i = -N:N
+
+ gddis_fou = gddis_fou + Dndis(i+N+1)*exp(j*i*w0*td);
+
+end
+
+plot(td,gddis_fou, color = 'r');
+
+
+%% Seção 6 - Síntese, análise de Fourier do sinal derivado e plot do sinal
+
+disp("Executando a seção 6");
+
+% Utiliza a propriedade de diferenciação no domínio do tempo para cálculo do Dn do novo sinal
+
+for i = -N:N
+
+ Dnder(i+N+1) = Dn(i+N+1)*(j*i*w0);
+
+end
+
+% Preenche o array gd_fou com os valores de y obtidos a partir da síntese de Fourier
+
+for i = -N:N
+
+ gdder_fou = gdder_fou + Dnder(i+N+1)*exp(j*i*w0*td);
+
+end
+
+plot(td,gdder_fou, color = 'b');
+
+
+%% Seção 7 - Síntese, análise de Fourier do sinal derivado^2 e plot do sinal
+
+disp("Executando a seção 7");
+
+% Utiliza a propriedade de diferenciação no domínio do tempo para cálculo do Dn do novo sinal
+
+for i = -N:N
+
+ Dnder2(i+N+1) = Dn(i+N+1)*(j*i*w0)^2;
+
+end
+
+% Preenche o array gd_fou com os valores de y obtidos a partir da síntese de Fourier
+
+for i = -N:N
+
+ gdder2_fou = gdder2_fou + Dnder2(i+N+1)*exp(j*i*w0*td);
+
+end
+
+figure(3); % Cria uma nova figura
+plot(td,gdder2_fou, color = 'y');
+
+
+%% Seção 8 - Síntese, análise de Fourier do sinal integrado e plot do sinal
+
+disp("Executando a seção 8");
+
+% Utiliza a propriedade de diferenciação no domínio do tempo para cálculo do Dn do novo sinal
+
+for i = -N:N
+
+ if(i != 0) Dnint(i+N+1) = Dn(i+N+1)/(j*i*w0);
+ else Dnint(i+N+1) = Dn(i+N+1)/(j*10^(-10)*w0); endif;
+
+end
+
+% Preenche o array gd_fou com os valores de y obtidos a partir da síntese de Fourier
+
+for i = -N:N
+
+ gdint_fou = gdint_fou + Dnint(i+N+1)*exp(j*i*w0*td);
+
+end
+
+figure(4); % Cria uma nova figura
+plot(td,gdint_fou, color = 'r');
+
+
+
+
+
+
+
+
+
+ 
+
+
